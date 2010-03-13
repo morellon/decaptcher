@@ -1,0 +1,10 @@
+background: continuous|opac
+background_threshold: 0.6
+lines_width: 3
+letters_color: black|white
+ai:
+  algorithm: backpropagation
+  hidden_neurons: 
+    - 105
+      102
+  weights:
