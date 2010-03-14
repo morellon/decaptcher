@@ -8,26 +8,45 @@ module OCR4R
     end
 
     def solve(img_file)
-      processed_img_file = process_image(img_file)
-      char_files = segment_chars(processed_img_file)
-      calculate_chars(char_files).gsub(/\W/, '*')
+      image = Magick::ImageList.new(img_file)
+      processed_image = process_image(image)
+      char_files = segment_chars(processed_image)
+      calculate_chars(char_images).gsub(/\W/, '*')
     end
 
     private
-    def process_image(img_file)
-      send("process_#{options[:background]}_background", options[:background_threshold])
-      send("thin_lines", options[:lines_width])
-      send("enfatize_chars", options[:chars_color])
+    def process_image(image)
+      send("process_#{options[:background]}_background", options[:background_threshold], image)
+      send("smooth_lines", options[:lines_width], image)
+      send("enfatize_chars", options[:chars_color], image)
     end
 
-    def calculate_char(char_file)
-      solver.solve(char_file.get_pixels)
+    def process_continuous_background(threshold, image)
+
+      image.write('background_treatment.bmp') if options[:debug]
+      image
     end
 
-    def calculate_chars(char_files)
+    def smooth_lines(line_width, image)
+      line_width.times{image = image.spread}
+      image.write('smoothed.bmp') if options[:debug]
+      image
+    end
+
+    def enfatize_chars(threshold, image)
+
+      image.write('chars_enfatized.bmp') if options[:debug]
+      image
+    end
+
+    def calculate_char(char_image)
+      solver.solve(char_image.get_pixels)
+    end
+
+    def calculate_chars(char_images)
       text = ""
-      char_files.each do |char_file|
-        text += calculate_char(char_file)
+      char_images.each do |char_image|
+        text += calculate_char(char_image)
       end
       
       text
