@@ -16,26 +16,34 @@ module OCR4R
 
     private
     def process_image(image)
-      send("process_#{options[:background]}_background", options[:background_threshold], image)
-      send("smooth_lines", options[:lines_width], image)
-      send("enfatize_chars", options[:chars_color], image)
+      image = image.quantize(256, Magick::GRAYColorspace)
+      image = send("process_background", options[:background_threshold], image)
+      image = send("smooth_lines", options[:lines_width], image)
+      image = send("emphasize_chars", options[:char_threshold], image)
+      image = image.reduce_noise(0)
+      image.write('processed.bmp') if options[:debug]
+      image
+
     end
 
-    def process_continuous_background(threshold, image)
-
+    def process_background(threshold, image)
+      tone = image.get_pixels(3, 3, 1, 1).red
+      image = tone >= 128 ? image.white_threshold(threshold) : image.black_threshold(threshold)
       image.write('background_treatment.bmp') if options[:debug]
       image
     end
 
     def smooth_lines(line_width, image)
+      # or blur_image?
       line_width.times{image = image.spread}
       image.write('smoothed.bmp') if options[:debug]
       image
     end
 
-    def enfatize_chars(threshold, image)
-
-      image.write('chars_enfatized.bmp') if options[:debug]
+    def emphasize_chars(threshold, image)
+      tone = image.get_pixels(3, 3, 1, 1).red
+      image = tone < 128 ? image.white_threshold(threshold) : image.black_threshold(threshold)
+      image.write('chars_emphasized.bmp') if options[:debug]
       image
     end
 
