@@ -10,7 +10,8 @@ module OCR4R
     def initialize(options={})
        @options = {:hidden_neurons => [], :training_amount => 100}.merge(options)
        @ai = Ai4r::NeuralNetwork::Backpropagation.new([INPUT_PIXELS]+@options[:hidden_neurons]+[CHARS])
-       @ai.weights = @options[:weigths]
+       @ai.init_network
+       @ai.weights = @options[:weights]
     end
 
     def solve(file)

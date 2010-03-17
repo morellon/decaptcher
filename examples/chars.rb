@@ -34,7 +34,8 @@ while char <= 'P'
   char = (char[0] + 1).chr
 end
 
-solver = OCR4R::Solver.new(:hidden_neurons => [300, 120])
+weights = YAML.load_file("config_test.yml")["ai"]["weights"]
+solver = OCR4R::Solver.new(:hidden_neurons => [300, 120], :weights => weights)
 directory = "perfect_chars"
 weights = solver.train(directory)
 opt = {"ai" => {"weights" => weights}}
