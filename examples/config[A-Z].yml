@@ -1,0 +1,3 @@
+--- 
+ai: 
+  hidden_neurons: [50] 

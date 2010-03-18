@@ -1,0 +1,5 @@
+--- 
+ai: 
+  hidden_neurons: 
+  - 50
+  weights: 
