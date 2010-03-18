@@ -1,5 +1,3 @@
-require "ruby-debug"
-
 module OCR4R
   class Solver
     attr_accessor :options, :ai
@@ -78,9 +76,10 @@ module OCR4R
     end
     
     def get_pixels(file)
-      image = Magick::ImageList.new(file)
-      pixels = image.get_pixels(0,0,16,16).map {|pixel| pixel.red == 0 ? 0 : 1}
-      pixels
+      # image = Magick::ImageList.new(file)
+      # pixels = image.get_pixels(0,0,16,16).map {|pixel| pixel.red == 0 ? 0 : 1}
+      # pixels
+      file.map {|pixel| pixel.red == 0 ? 0 : 1}
     end
   end
 end
