@@ -5,13 +5,13 @@ require "ocr4r"
 
 FONT_STYLE = {:normal => Magick::NormalStyle, :italic => Magick::ItalicStyle, :oblique => Magick::ObliqueStyle}
 FONT_WEIGHT = {:normal => Magick::NormalWeight, :bold => Magick::BoldWeight}
-char = 'M'
+char = 'A'
 
 font_family = 'arial'
 threshold = 0x8000
 `rm -r perfect_chars/*`
 
-while char <= 'P'
+while char <= 'Z'
   FONT_STYLE.each_pair do |style_key, style_value|
     FONT_WEIGHT.each_pair do |weight_key, weight_value|
       image = Magick::Image.new(16, 16)
@@ -34,13 +34,13 @@ while char <= 'P'
   char = (char[0] + 1).chr
 end
 
-weights = YAML.load_file("config_test.yml")["ai"]["weights"]
-solver = OCR4R::Solver.new(:hidden_neurons => [300, 120], :weights => weights)
+ai_config = YAML.load_file("config[A-Z].yml")["ai"]
+solver = OCR4R::Solver.new(:hidden_neurons => ai_config["hidden_neurons"], :weights => ai_config["weights"], :training_amount => 1000)
 directory = "perfect_chars"
 weights = solver.train(directory)
-opt = {"ai" => {"weights" => weights}}
+opt = {"ai" => {"weights" => weights, "hidden_neurons" => ai_config["hidden_neurons"]}}
 File.open("config1.yml", 'w') {|f| f.write(opt.to_yaml) }
 
-veio = solver.solve("#{directory}/[M]-arial_bold_normal.bmp")
+veio = solver.solve("#{directory}/[B]-arial_bold_normal.bmp")
 
 puts "veio: #{veio}"

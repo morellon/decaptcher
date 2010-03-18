@@ -6,12 +6,20 @@ module OCR4R
 
     INPUT_PIXELS = 256
     CHARS = 126
+    THRESHOLD = 0
 
     def initialize(options={})
        @options = {:hidden_neurons => [], :training_amount => 100}.merge(options)
-       @ai = Ai4r::NeuralNetwork::Backpropagation.new([INPUT_PIXELS]+@options[:hidden_neurons]+[CHARS])
+       @ai = Ai4r::NeuralNetwork::Backpropagation.new([INPUT_PIXELS]+@options[:hidden_neurons]+[output_array_size])
+       @ai.set_parameters( 
+           #:momentum => 0.1, 
+           :learning_rate => 0.5
+           #:propagation_function => lambda { |x| Math.tanh(x) },
+           #:derivative_propagation_function => lambda { |y| 1.0 - y**2 }
+           )
+       
        @ai.init_network
-       @ai.weights = @options[:weights]
+       @ai.weights = @options[:weights] if @options[:weights]
     end
 
     def solve(file)
@@ -40,21 +48,33 @@ module OCR4R
     end
 
     private
+    
+    def output_array_size
+      CHARS.to_s(2).length
+    end
+    
+    def convert_to_char(array)
+      (array.join('').to_i(2) - THRESHOLD).chr
+    end
+    
+    def convert_to_array(char)
+      bin = (char[0] + THRESHOLD).to_s(2)
+      zeros_length = output_array_size - bin.length
+      Array.new(zeros_length,0) + bin.split('').map{|i| i.to_i}
+    end
+    
     def convert_output(result)
       max = 0
-      result.each {|item| max = item > max ? item : max}
-      puts "resultado: #{result.index(max)}"
-      result.index(max).chr
+      result = result.map {|item| item > 0.5 ? 1 : 0}
+      puts "resultado: #{result}"
+      convert_to_char(result)
     end
 
     def convert_file_name(file)
       raise "Unknown file name format: #{file}" unless file =~ /\[(.)\].*\.bmp$/i
       char = $1
       puts "training char: #{char}"
-      code = char[0]
-      output = Array.new(CHARS, 0)
-      output[code] = 1
-      output
+      convert_to_array(char)
     end
     
     def get_pixels(file)
