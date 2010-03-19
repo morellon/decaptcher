@@ -1,4 +1,5 @@
 --- 
+:background_threshold: 0x6000
 :ai: 
   :hidden_neurons: 
   - 50

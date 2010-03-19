@@ -18,4 +18,14 @@ describe OCR4R::Solver do
     file = "[A]arial.bmp"
     subject.send(:convert_file_name, file).should == subject.send(:convert_to_array, 'A')
   end
+  
+  it "should convert a upcase char to AI array" do
+    file = "[A_upcase]arial.bmp"
+    subject.send(:convert_file_name, file).should == subject.send(:convert_to_array, 'A')
+  end
+  
+  it "should convert a downcase char to AI array" do
+    file = "[A_downcase]arial.bmp"
+    subject.send(:convert_file_name, file).should == subject.send(:convert_to_array, 'a')
+  end
 end

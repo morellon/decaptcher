@@ -20,8 +20,8 @@ module OCR4R
        @ai.weights = @options[:weights] if @options[:weights]
     end
 
-    def solve(file)
-      pixels = get_pixels(file)
+    def solve(image)
+      pixels = convert_pixels(image)
       convert_output(@ai.eval(pixels))
     end
 
@@ -30,8 +30,9 @@ module OCR4R
          Dir.entries(perfect_directory).each do |file|
             next unless file =~ /\.bmp$/
             puts "Train ##{i}:"
+            puts "training file: #{file}"
             output = convert_file_name(file)
-            error = @ai.train(get_pixels("#{perfect_directory}/#{file}"), output)
+            error = @ai.train(convert_pixels(Magick::ImageList.new("#{perfect_directory}/#{file}")), output)
             puts "training error: #{error}"
          end
        end if perfect_directory
@@ -39,7 +40,7 @@ module OCR4R
        Dir.entries(noisy_directory).each do |file|
           next unless file =~ /\.bmp$/
           output = convert_file_name(file)
-          @ai.train(get_pixels("#{perfect_directory}/#{file}"), output)
+          @ai.train(convert_pixels(Magick::ImageList.new("#{noisy_directory}/#{file}")), output)
        end if noisy_directory
  
        @ai.weights
@@ -56,7 +57,7 @@ module OCR4R
     end
     
     def convert_to_array(char)
-      bin = (char[0] + THRESHOLD).to_s(2)
+      bin = (char.ord + THRESHOLD).to_s(2)
       zeros_length = output_array_size - bin.length
       Array.new(zeros_length,0) + bin.split('').map{|i| i.to_i}
     end
@@ -69,17 +70,16 @@ module OCR4R
     end
 
     def convert_file_name(file)
-      raise "Unknown file name format: #{file}" unless file =~ /\[(.)\].*\.bmp$/i
+      raise "Unknown file name format: #{file}" unless file =~ /\[(.)(_upcase|_downcase)?\].*\.bmp$/
       char = $1
-      puts "training char: #{char}"
+      char_type = $2
+      char = char.send(char_type[1..-1]) if char_type
       convert_to_array(char)
     end
     
-    def get_pixels(file)
-      # image = Magick::ImageList.new(file)
-      # pixels = image.get_pixels(0,0,16,16).map {|pixel| pixel.red == 0 ? 0 : 1}
-      # pixels
-      file.map {|pixel| pixel.red == 0 ? 0 : 1}
+    def convert_pixels(image)
+      pixels = image.get_pixels(0,0,16,16).map {|pixel| pixel.red == 0 ? 0 : 1}
+      pixels
     end
   end
 end
